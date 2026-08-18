@@ -1,0 +1,19 @@
+# Системное
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Редакторы / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Временные файлы проверок (могли появиться при отладке)
+prod_*.html
+*_check.html
+csv_*.txt
+
+# Логи и мусор
+*.log
+node_modules/
