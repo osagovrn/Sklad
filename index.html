@@ -1092,11 +1092,18 @@
 
 <script>
   // reveal on scroll
-  const items = document.querySelectorAll('.reveal');
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-  }, {threshold:.15});
-  items.forEach(i=>io.observe(i));
+  // Fallback: если браузер не поддерживает IntersectionObserver (старые
+  // мобильные Safari/WebView), сразу показываем все блоки, чтобы контент
+  // не остался невидимым (у .reveal по умолчанию opacity:0).
+  const revealItems = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    }, {threshold:.15});
+    revealItems.forEach(i=>io.observe(i));
+  } else {
+    revealItems.forEach(i=>i.classList.add('in'));
+  }
 
   // open legal details panel when linked via #privacy / #offer
   function openLegalFromHash(){
