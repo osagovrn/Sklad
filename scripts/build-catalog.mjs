@@ -165,26 +165,32 @@ async function main() {
     `<div class="empty-state" id="catalogEmptyState"${emptyHiddenAttr}>`
   );
 
-  if (newHtml !== html) {
+  const catalogChanged = newHtml !== html;
+  if (catalogChanged) {
     writeFileSync(INDEX_PATH, newHtml, 'utf8');
     console.log('index.html обновлён.');
   } else {
     console.log('Изменений нет — index.html не трогаю.');
   }
 
-  // Обновляем lastmod в sitemap.xml, если файл есть
-  try {
-    let sitemap = readFileSync(SITEMAP_PATH, 'utf8');
-    const today = new Date().toISOString().slice(0, 10);
-    if (sitemap.includes('<lastmod>')) {
-      sitemap = sitemap.replace(/<lastmod>.*?<\/lastmod>/, `<lastmod>${today}</lastmod>`);
-    } else {
-      sitemap = sitemap.replace('</url>', `  <lastmod>${today}</lastmod>\n  </url>`);
+  // lastmod в sitemap.xml обновляем только когда каталог реально изменился,
+  // чтобы не плодить пустые коммиты каждые 6 часов.
+  if (catalogChanged) {
+    try {
+      let sitemap = readFileSync(SITEMAP_PATH, 'utf8');
+      const today = new Date().toISOString().slice(0, 10);
+      if (sitemap.includes('<lastmod>')) {
+        sitemap = sitemap.replace(/<lastmod>.*?<\/lastmod>/, `<lastmod>${today}</lastmod>`);
+      } else {
+        sitemap = sitemap.replace('</url>', `  <lastmod>${today}</lastmod>\n  </url>`);
+      }
+      writeFileSync(SITEMAP_PATH, sitemap, 'utf8');
+      console.log('sitemap.xml: lastmod →', today);
+    } catch {
+      console.log('sitemap.xml не найден — пропускаю обновление lastmod.');
     }
-    writeFileSync(SITEMAP_PATH, sitemap, 'utf8');
-    console.log('sitemap.xml: lastmod →', today);
-  } catch {
-    console.log('sitemap.xml не найден — пропускаю обновление lastmod.');
+  } else {
+    console.log('Каталог не менялся — sitemap.xml не трогаю.');
   }
 }
 
