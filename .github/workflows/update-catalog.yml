@@ -1,0 +1,44 @@
+name: Обновление каталога для поисковиков
+
+# Печёт свежий статический слепок товаров (из Google Таблицы) прямо в index.html,
+# чтобы поисковики видели актуальные названия и цены как обычный текст страницы,
+# а не только через JavaScript. Ничего вручную делать не нужно — таблицу
+# редактируете как обычно, здесь всё подхватится само.
+
+on:
+  schedule:
+    # Каждые 6 часов. Формат — UTC. Поменять частоту — просто отредактировать строку.
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Кнопка "Run workflow" во вкладке Actions на GitHub — можно запустить вручную
+    # сразу после того, как отредактировали таблицу, не дожидаясь расписания.
+
+permissions:
+  contents: write
+
+jobs:
+  update-catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Собрать статический слепок каталога
+        run: node scripts/build-catalog.mjs
+
+      - name: Закоммитить изменения (если есть)
+        run: |
+          git config user.name "catalog-bot"
+          git config user.email "actions@github.com"
+          git add index.html sitemap.xml
+          if git diff --cached --quiet; then
+            echo "Изменений нет, коммит не нужен."
+          else
+            git commit -m "chore: обновление каталога из Google Таблицы [auto]"
+            git push
+          fi
