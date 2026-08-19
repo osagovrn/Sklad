@@ -1318,10 +1318,21 @@
 
   // Скачивает данные каталога из Apps Script Web App (отдаёт CSV с правильными
   // CORS-заголовками напрямую, без стороннего прокси).
+  // Apps Script Web App бывает нестабилен: первый запрос может отдать
+  // 302/404, а повторный — данные. Пробуем несколько раз с паузой.
   async function fetchCatalogText(){
-    const res = await fetch(CATALOG_SHEET_CSV_URL, { cache: 'no-store' });
-    if(!res.ok) throw new Error('bad response');
-    return await res.text();
+    let lastErr;
+    for(let attempt = 1; attempt <= 4; attempt++){
+      try{
+        const res = await fetch(CATALOG_SHEET_CSV_URL, { cache: 'no-store' });
+        if(res.ok) return await res.text();
+        lastErr = new Error('bad response ' + res.status);
+      }catch(err){
+        lastErr = err;
+      }
+      if(attempt < 4) await new Promise(r => setTimeout(r, 2500 * attempt));
+    }
+    throw lastErr || new Error('failed');
   }
 
   // Загружает каталог один раз при первом открытии блока и превращает CSV-строки в объекты товаров

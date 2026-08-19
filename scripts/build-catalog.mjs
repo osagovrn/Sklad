@@ -71,13 +71,29 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
+async function fetchWithRetry(url, attempts = 5) {
+  // Apps Script Web App бывает нестабилен: первый запрос может отдать
+  // 302/404 (холодный старт), а повторный — данные. Поэтому пробуем
+  // несколько раз с паузой.
+  let lastStatus = 0;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) return res;
+      lastStatus = res.status;
+      console.log(`Попытка ${i}/${attempts}: HTTP ${res.status} — повторяю...`);
+    } catch (err) {
+      lastStatus = 0;
+      console.log(`Попытка ${i}/${attempts}: сеть — ${err.message}`);
+    }
+    await new Promise(r => setTimeout(r, 4000 * i));
+  }
+  throw new Error(`Каталог не отдался после ${attempts} попыток (последний HTTP ${lastStatus})`);
+}
+
 async function main() {
   console.log('Качаю CSV с', CATALOG_URL);
-  const res = await fetch(CATALOG_URL, { cache: 'no-store' });
-  if (!res.ok) {
-    console.error('Каталог не отдался (HTTP', res.status, ') — оставляю index.html как есть.');
-    process.exit(1);
-  }
+  const res = await fetchWithRetry(CATALOG_URL);
   const text = await res.text();
   const rows = parseCSV(text);
   rows.shift(); // строка заголовков
