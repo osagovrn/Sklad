@@ -375,7 +375,11 @@
   }
   .catalog-item-tag[data-cat="cable"]{background:#E8F0FE; color:#1a56b0;}
   .catalog-item-tag[data-cat="fire"]{background:#FDEAEA; color:#B0281A;}
-  .catalog-item-tag[data-cat="other"]{background:#EFEDF7; color:#5B4FA0;}
+  .catalog-item-tag[data-cat="alert"]{background:#FFF4E0; color:#9A5B00;}
+  .catalog-item-tag[data-cat="signal"]{background:#E5F7EC; color:#0F7A3D;}
+  .catalog-item-tag[data-cat="light"]{background:#FFF9DB; color:#8A6D00;}
+  .catalog-item-tag[data-cat="video"]{background:#E9EDFB; color:#3D4FC0;}
+  .catalog-item-tag[data-cat^="cat-"], .catalog-item-tag[data-cat="other"]{background:#EFEDF7; color:#5B4FA0;}
   .catalog-item-name{font-weight:600; font-size:14.5px; color:var(--ink);}
   .catalog-item-note{font-size:13px; color:var(--ink-dim);}
   .catalog-item-right{display:flex; align-items:baseline; gap:16px; flex-shrink:0;}
@@ -824,12 +828,9 @@
         </summary>
 
         <div class="catalog-body">
-          <div class="tabs" role="group" aria-label="Фильтр по категориям">
-            <button class="tab active" type="button" data-filter="all" aria-pressed="true">Всё</button>
-            <button class="tab" type="button" data-filter="cable" aria-pressed="false">Кабель</button>
-            <button class="tab" type="button" data-filter="fire" aria-pressed="false">Пожарное оборудование</button>
-            <button class="tab" type="button" data-filter="other" aria-pressed="false">Другое</button>
-          </div>
+          <!-- Кнопки категорий генерируются автоматически из Google-таблицы:
+               какие категории есть в таблице, такие кнопки и появляются -->
+          <div class="tabs" id="catalogTabs" role="group" aria-label="Фильтр по категориям"></div>
 
           <div class="search-row">
             <input type="text" id="catalogSearch" placeholder="Поиск по названию, например: ВВГ 3×2,5">
@@ -1235,12 +1236,27 @@
     return rows.filter(r => r.some(c => c.trim() !== ''));
   }
 
-  // Определяет категорию товара по тексту из столбца "Категория" (кабель / пожарное / другое)
+  // Определяет категорию товара по тексту из столбца "Категория".
+  // Категории динамические: добавьте в таблице новое ключевое слово —
+  // и на сайте автоматически появится кнопка с этой категорией.
+  // Синонимы сводятся к одному названию, чтобы не плодить кнопки.
   function guessCategory(raw){
-    const v = (raw || '').toLowerCase();
-    if(v.includes('кабел')) return 'cable';
-    if(v.includes('пожар')) return 'fire';
-    return 'other';
+    const v = (raw || '').trim().toLowerCase();
+    const map = [
+      { words: ['кабел','провод','ввг','окв','мкеш','кг'], key: 'cable', label: 'Кабель' },
+      { words: ['пожар','огнетушит'], key: 'fire', label: 'Пожарное оборудование' },
+      { words: ['оповещ','сирен','табло'], key: 'alert', label: 'Оповещение' },
+      { words: ['сигнализац','извещат','датчик','прибор'], key: 'signal', label: 'Сигнализация' },
+      { words: ['освещен','светильник','лампа'], key: 'light', label: 'Освещение' },
+      { words: ['камер','видео'], key: 'video', label: 'Видеонаблюдение' },
+    ];
+    for(const m of map){
+      if(m.words.some(w => v.includes(w))) return { key: m.key, label: m.label };
+    }
+    // Ни одно ключевое слово не подошло — используем текст из таблицы как есть,
+    // чтобы и неизвестные категории получали свои кнопки.
+    const label = (raw || '').trim();
+    return { key: 'cat-' + (v.replace(/[^a-z0-9а-яё]+/gi, '-').slice(0, 24) || 'other'), label: label || 'Другое' };
   }
 
   // Экранирует спецсимволы, чтобы текст из таблицы нельзя было использовать для внедрения HTML/скриптов
@@ -1290,25 +1306,37 @@
     return variants.some(v => v && normName.includes(v));
   }
 
-  // Показывает кнопки категорий только для тех категорий, в которых есть товары.
-  // Если в таблице только кабель — кнопка «Пожарное оборудование» не показывается,
-  // а появится автоматически, как только вы добавите такие товары.
+  // Генерирует кнопки категорий автоматически из товаров, которые есть
+  // в таблице. Кнопка «Всё» всегда на месте; остальные — только для тех
+  // категорий, в которых реально есть товары.
   function updateTabs(){
-    const present = new Set(catalogItems.map(i => i.category));
-    document.querySelectorAll('.tab').forEach(tab=>{
-      const f = tab.dataset.filter;
-      if(f === 'all') return; // «Всё» показываем всегда
-      tab.style.display = present.has(f) ? '' : 'none';
+    const wrap = document.getElementById('catalogTabs');
+    if(!wrap) return;
+    // Уникальные категории в порядке появления
+    const seen = [];
+    catalogItems.forEach(i=>{
+      if(!seen.some(s => s.key === i.category)) seen.push({ key: i.category, label: i.categoryLabel });
     });
-    // Если активный фильтр стал недоступен — сбрасываем на «Всё»
-    if(currentFilter !== 'all' && !present.has(currentFilter)){
-      currentFilter = 'all';
-      document.querySelectorAll('.tab').forEach(t=>{
-        const on = t.dataset.filter === 'all';
-        t.classList.toggle('active', on);
-        t.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const html = [
+      '<button class="tab' + (currentFilter === 'all' ? ' active' : '') + '" type="button" data-filter="all" aria-pressed="' + (currentFilter === 'all' ? 'true' : 'false') + '">Всё</button>',
+      ...seen.map(c =>
+        '<button class="tab' + (currentFilter === c.key ? ' active' : '') + '" type="button" data-filter="' + escapeHTML(c.key) + '" aria-pressed="' + (currentFilter === c.key ? 'true' : 'false') + '">' + escapeHTML(c.label) + '</button>'
+      )
+    ].join('');
+    wrap.innerHTML = html;
+    // Пере-привязываем клики по новым кнопкам
+    wrap.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        wrap.querySelectorAll('.tab').forEach(t=>{
+          t.classList.remove('active');
+          t.setAttribute('aria-pressed', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-pressed', 'true');
+        currentFilter = tab.dataset.filter;
+        renderCatalog();
       });
-    }
+    });
   }
 
   // Отрисовывает список товаров на странице с учётом фильтра по категории и поискового запроса
@@ -1391,10 +1419,10 @@
       const rows = parseCSV(text);
       rows.shift(); // убираем строку заголовков
       catalogItems = rows.map(r => {
-        const category = guessCategory(r[0]);
+        const cat = guessCategory(r[0]);
         return {
-          category,
-          categoryLabel: category === 'cable' ? 'Кабель' : category === 'fire' ? 'Пожарное оборудование' : 'Другое',
+          category: cat.key,
+          categoryLabel: cat.label,
           name: (r[1] || '').trim(),
           qty: (r[2] || '').trim(),
           price: (r[3] || '').trim(),
@@ -1427,18 +1455,8 @@
     catalogSearchInput.addEventListener('input', renderCatalog);
   }
 
-  document.querySelectorAll('.tab').forEach(tab=>{
-    tab.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(t=>{
-        t.classList.remove('active');
-        t.setAttribute('aria-pressed', 'false');
-      });
-      tab.classList.add('active');
-      tab.setAttribute('aria-pressed', 'true');
-      currentFilter = tab.dataset.filter;
-      renderCatalog();
-    });
-  });
+  // Начальная отрисовка кнопок (пока каталог не загружен — только «Всё»)
+  updateTabs();
 
   // Форма с автоотправкой в Telegram/на почту убрана: заявки идут по звонку
   // и в личные сообщения в мессенджерах (см. кнопки связи в разделе "Что есть в наличии").

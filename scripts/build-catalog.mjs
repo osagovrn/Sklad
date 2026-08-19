@@ -55,11 +55,23 @@ function parseCSV(text) {
   return rows.filter(r => r.some(c => c.trim() !== ''));
 }
 
+// Категории динамические: добавьте в таблице новое ключевое слово — и на сайте
+// автоматически появится кнопка с этой категорией (логика совпадает с клиентской).
 function guessCategory(raw) {
-  const v = (raw || '').toLowerCase();
-  if (v.includes('кабел')) return 'cable';
-  if (v.includes('пожар')) return 'fire';
-  return 'other';
+  const v = (raw || '').trim().toLowerCase();
+  const map = [
+    { words: ['кабел', 'провод', 'ввг', 'окв', 'мкеш', 'кг'], key: 'cable', label: 'Кабель' },
+    { words: ['пожар', 'огнетушит'], key: 'fire', label: 'Пожарное оборудование' },
+    { words: ['оповещ', 'сирен', 'табло'], key: 'alert', label: 'Оповещение' },
+    { words: ['сигнализац', 'извещат', 'датчик', 'прибор'], key: 'signal', label: 'Сигнализация' },
+    { words: ['освещен', 'светильник', 'лампа'], key: 'light', label: 'Освещение' },
+    { words: ['камер', 'видео'], key: 'video', label: 'Видеонаблюдение' },
+  ];
+  for (const m of map) {
+    if (m.words.some(w => v.includes(w))) return { key: m.key, label: m.label };
+  }
+  const label = (raw || '').trim();
+  return { key: 'cat-' + (v.replace(/[^a-z0-9а-яё]+/gi, '-').slice(0, 24) || 'other'), label: label || 'Другое' };
 }
 
 function escapeHTML(str) {
@@ -99,10 +111,10 @@ async function main() {
   rows.shift(); // строка заголовков
 
   const items = rows.map(r => {
-    const category = guessCategory(r[0]);
+    const cat = guessCategory(r[0]);
     return {
-      category,
-      categoryLabel: category === 'cable' ? 'Кабель' : category === 'fire' ? 'Пожарное оборудование' : 'Другое',
+      category: cat.key,
+      categoryLabel: cat.label,
       name: (r[1] || '').trim(),
       qty: (r[2] || '').trim(),
       price: (r[3] || '').trim(),
