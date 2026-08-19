@@ -91,50 +91,6 @@
 }
 </script>
 
-<!-- JSON-LD: Автомобиль ВАЗ LADA 4x4 «Нива» -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "ВАЗ LADA 4x4 «Нива», 2010",
-  "description": "Продажа ВАЗ LADA 4x4 «Нива» 2010 года, 1,7 МТ, пробег 269 250 км, 1 хозяин, стоит ГАЗ. Экономичный вариант для работы и дачи.",
-  "brand": { "@type": "Brand", "name": "LADA" },
-  "category": "Автомобили",
-  "offers": {
-    "@type": "Offer",
-    "availability": "https://schema.org/InStock",
-    "url": "https://www.avito.ru/voronezh/avtomobili/vaz_lada_4x4_niva_1.7_mt_2010_269_250_km_7556434848",
-    "seller": { "@type": "Organization", "name": "Склад Евгения" }
-  }
-}
-</script>
-
-<!-- JSON-LD: Продажа помещения -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Продажа помещения свободного назначения, 109,1 м², Воронеж",
-  "description": "Продажа помещения свободного назначения 109,1 м² на 3 этаже по адресу ул. Дубянского, 4, Воронеж. Без ремонта и перегородок, отдельный вход, парковка. Оформлено на физическое лицо, без обременений и долгов. Цена 3 200 000 ₽.",
-  "url": "https://skladvrn.ru/",
-  "offers": {
-    "@type": "Offer",
-    "price": "3200000",
-    "priceCurrency": "RUB",
-    "availability": "https://schema.org/InStock"
-  },
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "ул. Дубянского, 4",
-    "addressLocality": "Воронеж",
-    "addressRegion": "Воронежская область",
-    "addressCountry": "RU"
-  },
-  "floorSize": { "@type": "QuantitativeValue", "value": 109.1, "unitCode": "MTK" },
-  "numberOfRooms": 0
-}
-</script>
-
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -1015,8 +971,8 @@
   </div>
 </section>
 
-<!-- ================= CAR AD ================= -->
-<section class="car-ad">
+<!-- ================= CAR AD (реклама, не влияет на SEO) ================= -->
+<aside class="car-ad" aria-label="Реклама" data-nosnippet>
   <div class="wrap">
     <span class="eyebrow car-ad-title">Тоже продаём</span>
     <div class="car-ad-grid">
@@ -1039,7 +995,7 @@
           <img src="images/niva-3.jpg" alt="ВАЗ LADA 4x4 Нива — фото 3" loading="lazy">
         </div>
         <div class="car-ad-action">
-          <a class="car-ad-btn" href="https://www.avito.ru/voronezh/avtomobili/vaz_lada_4x4_niva_1.7_mt_2010_269_250_km_7556434848" target="_blank" rel="noopener">
+          <a class="car-ad-btn" href="https://www.avito.ru/voronezh/avtomobili/vaz_lada_4x4_niva_1.7_mt_2010_269_250_km_7556434848" target="_blank" rel="nofollow noopener">
             Смотреть объявление
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M8 7h9v9"/></svg>
           </a>
@@ -1075,7 +1031,7 @@
 
     </div>
   </div>
-</section>
+</aside>
 
 <!-- ================= AVITO STRIP ================= -->
 <section class="avito-strip">
@@ -1190,14 +1146,14 @@
   </div>
 </section>
 
-<!-- ================= OTHER PROJECTS ================= -->
-<section class="other-projects">
+<!-- ================= OTHER PROJECTS (реклама, не влияет на SEO) ================= -->
+<aside class="other-projects" aria-label="Реклама" data-nosnippet>
   <div class="wrap">
     <span class="eyebrow">Ещё в Воронеже</span>
     <h2>Другие наши проекты</h2>
     <p>Мы локальная команда в Воронеже — вот чем ещё занимаемся, кроме склада.</p>
     <div class="op-grid">
-      <a class="op-card" href="https://yvwvy.ru/" target="_blank" rel="noopener">
+      <a class="op-card" href="https://yvwvy.ru/" target="_blank" rel="nofollow noopener">
         <div class="op-head">
           <span class="op-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
           <span class="op-tag">Наш проект</span>
@@ -1208,7 +1164,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M8 7h9v9"/></svg>
         </span>
       </a>
-      <a class="op-card" href="https://beri36.ru/" target="_blank" rel="noopener">
+      <a class="op-card" href="https://beri36.ru/" target="_blank" rel="nofollow noopener">
         <div class="op-head">
           <span class="op-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M3 15h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 15v3M16 15v3"/></svg></span>
           <span class="op-tag">Наш проект</span>
@@ -1219,7 +1175,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M8 7h9v9"/></svg>
         </span>
       </a>
-      <a class="op-card" href="https://elenaperm.ru/" target="_blank" rel="noopener">
+      <a class="op-card" href="https://elenaperm.ru/" target="_blank" rel="nofollow noopener">
         <div class="op-head">
           <span class="op-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v4M12 17v4M5 12H1M23 12h-4M7.05 7.05 4.22 4.22M19.78 19.78l-2.83-2.83M7.05 16.95l-2.83 2.83M19.78 4.22l-2.83 2.83"/></svg></span>
           <span class="op-tag">Наш проект</span>
@@ -1232,7 +1188,7 @@
       </a>
     </div>
   </div>
-</section>
+</aside>
 
 
 <!-- ================= FOOTER ================= -->
