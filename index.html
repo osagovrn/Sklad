@@ -388,13 +388,17 @@
   }
 
   .empty-state{
-    display:grid; grid-template-columns:1fr 1.15fr; gap:28px; align-items:center;
-    background:var(--paper-2); border:1px dashed #D8D9DE; border-radius:16px;
-    padding:20px; margin-top:16px;
+    display:grid; grid-template-columns:1fr 1.15fr; gap:20px; align-items:center;
+    background:var(--paper-2); border:1px dashed #D8D9DE; border-radius:14px;
+    padding:14px 16px; margin-top:12px;
   }
-  .empty-state h3{font-size:19px; text-transform:none; margin-bottom:8px;}
-  .empty-state p{color:var(--ink-dim); font-size:14.5px; margin-bottom:14px; max-width:420px;}
-  .empty-note{font-size:12.5px; color:var(--ink-dim); margin-top:10px;}
+  .empty-state h3{font-size:16px; text-transform:none; margin-bottom:4px;}
+  .empty-state p{color:var(--ink-dim); font-size:13px; margin-bottom:8px; max-width:420px;}
+  .empty-note{font-size:12px; color:var(--ink-dim); margin-top:6px;}
+  .empty-state .contact-cta-row{gap:8px !important; margin-top:8px !important;}
+  .empty-state .cta-btn{padding:8px 14px; font-size:13px;}
+  .empty-visual{padding:12px;}
+  .empty-visual svg{max-width:150px;}
   .cta-btn{
     display:inline-flex; align-items:center; justify-content:center;
     padding:12px 20px; border-radius:10px; font-weight:600; font-size:14px;
@@ -1286,11 +1290,40 @@
     return variants.some(v => v && normName.includes(v));
   }
 
+  // Показывает кнопки категорий только для тех категорий, в которых есть товары.
+  // Если в таблице только кабель — кнопка «Пожарное оборудование» не показывается,
+  // а появится автоматически, как только вы добавите такие товары.
+  function updateTabs(){
+    const present = new Set(catalogItems.map(i => i.category));
+    document.querySelectorAll('.tab').forEach(tab=>{
+      const f = tab.dataset.filter;
+      if(f === 'all') return; // «Всё» показываем всегда
+      tab.style.display = present.has(f) ? '' : 'none';
+    });
+    // Если активный фильтр стал недоступен — сбрасываем на «Всё»
+    if(currentFilter !== 'all' && !present.has(currentFilter)){
+      currentFilter = 'all';
+      document.querySelectorAll('.tab').forEach(t=>{
+        const on = t.dataset.filter === 'all';
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+  }
+
   // Отрисовывает список товаров на странице с учётом фильтра по категории и поискового запроса
   function renderCatalog(){
     const list = document.getElementById('catalogList');
     const emptyState = document.getElementById('catalogEmptyState');
     const searchVal = (document.getElementById('catalogSearch')?.value || '').trim();
+
+    // Каталог ещё не загрузился (или загрузка не удалась) — оставляем
+    // статический SEO-слепок видимым, а не показываем «Раздел в разработке».
+    if(!catalogLoaded){
+      emptyState.hidden = true;
+      list.hidden = false;
+      return;
+    }
 
     const filtered = catalogItems.filter(item=>{
       const matchesFilter = currentFilter === 'all' || item.category === currentFilter;
@@ -1298,7 +1331,7 @@
       return matchesFilter && matchesSearch;
     });
 
-    if(!catalogLoaded || catalogItems.length === 0){
+    if(catalogItems.length === 0){
       list.hidden = true;
       emptyState.hidden = false;
       return;
@@ -1377,6 +1410,7 @@
       catalogLoaded = true;
       catalogItems = [];
     }
+    updateTabs();
     renderCatalog();
   }
 
